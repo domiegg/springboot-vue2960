@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.ZiwojianceDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.yonghu_id as yonghuId
+        ,a.jiancelishi_types as jiancelishiTypes
+        ,a.ziwojiance_number as ziwojianceNumber
+        ,a.ziwojiance_time as ziwojianceTime
+        ,a.ziwojiance_content as ziwojianceContent
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.ZiwojianceView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,yonghu.yonghu_name as yonghuName
+        ,yonghu.yonghu_photo as yonghuPhoto
+        ,yonghu.yonghu_phone as yonghuPhone
+
+        FROM ziwojiance  a
+        left JOIN yonghu yonghu ON a.yonghu_id = yonghu.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.yonghuId != null and params.yonghuId != ''">
+                and (
+                    a.yonghu_id = #{params.yonghuId}
+                )
+            </if>
+            <if test="params.jiancelishiTypes != null and params.jiancelishiTypes != ''">
+                and a.jiancelishi_types = #{params.jiancelishiTypes}
+            </if>
+            <if test="params.ziwojianceNumberStart != null ">
+                <![CDATA[  and a.ziwojiance_number >= #{params.ziwojianceNumberStart}   ]]>
+            </if>
+            <if test="params.ziwojianceNumberEnd != null ">
+                <![CDATA[  and a.ziwojiance_number <= #{params.ziwojianceNumberEnd}   ]]>
+            </if>
+            <if test=" params.ziwojianceTimeStart != '' and params.ziwojianceTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.ziwojiance_time) >= UNIX_TIMESTAMP(#{params.ziwojianceTimeStart}) ]]>
+            </if>
+            <if test=" params.ziwojianceTimeEnd != '' and params.ziwojianceTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.ziwojiance_time) <= UNIX_TIMESTAMP(#{params.ziwojianceTimeEnd}) ]]>
+            </if>
+            <if test=" params.ziwojianceContent != '' and params.ziwojianceContent != null and params.ziwojianceContent != 'null' ">
+                and a.ziwojiance_content like CONCAT('%',#{params.ziwojianceContent},'%')
+            </if>
+
+                <!-- 判断用户的id不为空 -->
+            <if test=" params.yonghuIdNotNull != '' and params.yonghuIdNotNull != null and params.yonghuIdNotNull != 'null' ">
+                and a.yonghu_id IS NOT NULL
+            </if>
+            <if test=" params.yonghuName != '' and params.yonghuName != null and params.yonghuName != 'null' ">
+                and yonghu.yonghu_name like CONCAT('%',#{params.yonghuName},'%')
+            </if>
+            <if test=" params.yonghuPhone != '' and params.yonghuPhone != null and params.yonghuPhone != 'null' ">
+                and yonghu.yonghu_phone like CONCAT('%',#{params.yonghuPhone},'%')
+            </if>
+            <if test=" params.yonghuIdNumber != '' and params.yonghuIdNumber != null and params.yonghuIdNumber != 'null' ">
+                and yonghu.yonghu_id_number like CONCAT('%',#{params.yonghuIdNumber},'%')
+            </if>
+            <if test=" params.yonghuEmail != '' and params.yonghuEmail != null and params.yonghuEmail != 'null' ">
+                and yonghu.yonghu_email like CONCAT('%',#{params.yonghuEmail},'%')
+            </if>
+            <if test="params.yonghuDeleteStart != null  and params.yonghuDeleteStart != '' ">
+                <![CDATA[  and yonghu.yonghu_delete >= #{params.yonghuDeleteStart}   ]]>
+            </if>
+            <if test="params.yonghuDeleteEnd != null  and params.yonghuDeleteEnd != '' ">
+                <![CDATA[  and yonghu.yonghu_delete <= #{params.yonghuDeleteEnd}   ]]>
+            </if>
+            <if test="params.yonghuDelete != null  and params.yonghuDelete != '' ">
+                and yonghu.yonghu_delete = #{params.yonghuDelete}
+            </if>
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>
